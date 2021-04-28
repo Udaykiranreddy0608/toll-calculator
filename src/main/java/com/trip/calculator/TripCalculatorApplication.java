@@ -9,11 +9,13 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 public class TripCalculatorApplication {
 
@@ -21,11 +23,11 @@ public class TripCalculatorApplication {
     //
     String interChanges =
         FileUtils.readFileToString(
-            new File("D:\\workarea\\code\\TripCalculator\\src\\main\\resources\\interchanges.json"),
+            new File("E:\\workarea\\projects\\toll-calculator\\src\\main\\resources\\interchanges.json"),
             StandardCharsets.UTF_8);
 
     Locations locationsZ = new Locations();
-    HashMap<Integer, Toll> stringTollHashMap = new HashMap<>();
+    HashMap<Integer, Toll> mapOfLocations = new HashMap<>();
     JSONObject jsonObject = new JSONObject(interChanges);
     JSONObject locations = jsonObject.getJSONObject("locations");
     // System.out.println(jsonObject.toString());
@@ -43,6 +45,9 @@ public class TripCalculatorApplication {
         Routes routes1 = new Routes();
         routes1.setToId(jsonObject2.getInt("toId"));
         routes1.setDistance(jsonObject2.getBigDecimal("distance"));
+        routes1.setEnter(jsonObject2.optBoolean("enter", true));
+        routes1.setExit(jsonObject2.optBoolean("exit", true));
+
         routes.add(routes1);
       }
       Toll toll = new Toll();
@@ -50,17 +55,26 @@ public class TripCalculatorApplication {
       toll.setLng(jsonObject1.getBigDecimal("lng"));
       toll.setLat(jsonObject1.getBigDecimal("lat"));
       toll.setRoutes(routes);
-      stringTollHashMap.put(Integer.parseInt(key), toll);
+      mapOfLocations.put(Integer.parseInt(key), toll);
     }
 
-    String startPoint = "QEW";
-    String endPoint = "Dundas Street";
+//    String startPoint = "QEW";
+//    String endPoint = "Highway 400";
     // String endPoint = "Highway 400";
+
+
+    String endPoint = "QEW";
+    String startPoint = "Bronte Road";
+
+
     Toll startToll = null;
     Toll endToll = null;
+    if (startPoint.equalsIgnoreCase(endPoint)) {
+      return; // handle this
 
-    for (Integer key : stringTollHashMap.keySet()) {
-      Toll toll = stringTollHashMap.get(key);
+    }
+    for (Integer key : mapOfLocations.keySet()) {
+      Toll toll = mapOfLocations.get(key);
       toll.setRouteId(key);
       if (toll.getName().equalsIgnoreCase(startPoint)) {
         startToll = toll;
@@ -69,15 +83,46 @@ public class TripCalculatorApplication {
       }
     }
 
+    if (Objects.isNull(endToll) || Objects.isNull(startToll)) {
+      return;
+    }
+
     System.out.println("Start toll : " + startToll.toString());
     System.out.println("end toll : " + endToll.toString());
 
-    getNextRoutePostive(startToll);
 
-    // stringTollHashMap.get(startToll.getRoutes().get());
+    BigDecimal distance = new BigDecimal("0.0");
+
+    distance = getDistance(mapOfLocations, startToll, endToll.getRouteId(), distance);
+    System.out.println("Total distance from : " + startPoint + "\t to :" + endPoint + "\t is :" + distance);
+    System.out.println("Total cost is : " + (distance.multiply(new BigDecimal("0.25"))) + "$");
   }
 
-  private static void getNextRoutePostive(Toll startToll) {
-    for (Routes route : startToll.getRoutes()) {}
+  private static BigDecimal getDistance(HashMap<Integer, Toll> mapOfLocations, Toll startToll, Integer endTollRouteId,
+      BigDecimal distance) {
+    // If both tolls are same
+    if (startToll.getRouteId() == endTollRouteId) {
+      return distance;
+    }
+
+
+    for (Routes route : startToll.getRoutes()) {
+
+      if (startToll.getRouteId() < endTollRouteId) {
+        if (route.getToId() > startToll.getRouteId() && route.isExit() == true && route.isEnter() == true) {
+          return getDistance(mapOfLocations, mapOfLocations.get(route.getToId()), endTollRouteId,
+              distance.add(route.getDistance()));
+        }
+
+      } else if (startToll.getRouteId() > endTollRouteId) {
+        if (route.getToId() < startToll.getRouteId() && route.isExit() == true) {
+          return getDistance(mapOfLocations, mapOfLocations.get(route.getToId()), endTollRouteId,
+              distance.add(route.getDistance()));
+        }
+      }
+
+    }
+
+    return new BigDecimal("-1");
   }
 }

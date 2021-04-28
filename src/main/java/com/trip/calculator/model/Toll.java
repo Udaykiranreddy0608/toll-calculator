@@ -2,6 +2,7 @@ package com.trip.calculator.model;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.StringJoiner;
 
 public class Toll {
 
@@ -11,14 +12,19 @@ public class Toll {
   private List<Routes> routes;
   private Integer routeId;
 
-  public Toll() {}
 
-  public Toll(String name, BigDecimal lat, BigDecimal lng, List<Routes> routes, Integer routeId) {
-    this.name = name;
-    this.lat = lat;
-    this.lng = lng;
-    this.routes = routes;
-    this.routeId = routeId;
+  public Toll() {
+  }
+
+  @Override
+  public String toString() {
+    return new StringJoiner(", ", Toll.class.getSimpleName() + "[", "]")
+        .add("name='" + name + "'")
+        .add("lat=" + lat)
+        .add("lng=" + lng)
+        .add("routes=" + routes)
+        .add("routeId=" + routeId)
+        .toString();
   }
 
   public String getName() {
@@ -61,14 +67,11 @@ public class Toll {
     this.routeId = routeId;
   }
 
-  @Override
-  public String toString() {
-    return "Toll{" +
-            "name='" + name + '\'' +
-            ", lat=" + lat +
-            ", lng=" + lng +
-            ", routes=" + routes +
-            ", routeId=" + routeId +
-            '}';
+  public Toll(String name, BigDecimal lat, BigDecimal lng, List<Routes> routes, Integer routeId) {
+    this.name = name;
+    this.lat = lat;
+    this.lng = lng;
+    this.routes = routes;
+    this.routeId = routeId;
   }
 }
