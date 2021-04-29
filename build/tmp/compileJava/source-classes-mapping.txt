@@ -1,8 +1,0 @@
-com/trip/calculator/model/Locations.java
- com.trip.calculator.model.Locations
-com/trip/calculator/model/Routes.java
- com.trip.calculator.model.Routes
-com/trip/calculator/TripCalculatorApplication.java
- com.trip.calculator.TripCalculatorApplication
-com/trip/calculator/model/Toll.java
- com.trip.calculator.model.Toll
